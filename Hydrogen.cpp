@@ -65,8 +65,8 @@ int main(int argc, char *argv[]) {
           for (auto lineInst : line->getLineInstructions()) {
             added_path.push_back(lineInst);
           }
+          added_path_list.push_back(added_path);
         }
-        added_path_list.push_back(added_path);
 
         for (auto line : iterDel) {
           std::vector<Graph_Instruction *> deleted_path;
@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
 
   std::cout << "Newly added paths: \n";
   for (std::vector<Graph_Instruction *> path : added_path_list) {
-    std:cout << "Path " + std::to_string(path_number) + ": ";
+    std::cout << "Path " + std::to_string(path_number) + ": ";
     for (Graph_Instruction *Instr : path) {
       std::cout << std::to_string(Instr->getInstructionID()) + " ";
     }
