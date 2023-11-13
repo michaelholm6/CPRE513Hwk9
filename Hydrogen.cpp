@@ -45,6 +45,7 @@ int main(int argc, char *argv[]) {
   auto mvicfgStart = std::chrono::high_resolution_clock::now();
   /* Create MVICFG */
   std::vector<std::vector<Graph_Instruction *>> deleted_path_list;
+  std::vector<std::vector<Graph_Instruction *>> added_path_list;
   for (auto iterModule = mod.begin(), iterModuleEnd = mod.end(); iterModule != iterModuleEnd; ++iterModule) {
     auto iterModuleNext = std::next(iterModule);
     /* Proceed as long as there is a next module */
@@ -59,6 +60,14 @@ int main(int argc, char *argv[]) {
         /* iter.printFileInfo(); */
         std::list<Graph_Line *> iterAdd = addToMVICFG(MVICFG, ICFG, iter, graphVersion);
         std::list<Graph_Line *> iterDel = deleteFromMVICFG(MVICFG, ICFG, iter, graphVersion);
+        for (auto line : iterAdd){
+          std::vector<Graph_Instruction *> added_path;
+          for (auto lineInst : line->getLineInstructions()) {
+            added_path.push_back(lineInst);
+          }
+        }
+        added_path_list.push_back(added_path);
+
         for (auto line : iterDel) {
           std::vector<Graph_Instruction *> deleted_path;
           for (auto lineInst : line->getLineInstructions()) {
@@ -136,6 +145,18 @@ int main(int argc, char *argv[]) {
     path_number++;
   }
   std::cout << "Number of newly removed paths: " + std::to_string(path_number-1) + "\n";
+
+  std::cout << "Newly added paths: \n";
+  for (std::vector<Graph_Instruction *> path : added_path_list) {
+    std:cout << "Path " + std::to_string(path_number) + ": ";
+    for (Graph_Instruction *Instr : path) {
+      std::cout << std::to_string(Instr->getInstructionID()) + " ";
+    }
+    std::cout << "\n";
+    path_number++;
+  }
+  std::cout << "Number of newly added paths: " + std::to_string(path_number - 1) + "\n";
+
   /* Write output to file */
   std::ofstream rFile("Result.txt", std::ios::trunc);
   if (!rFile.is_open()) {
