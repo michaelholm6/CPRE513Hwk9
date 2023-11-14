@@ -116,6 +116,51 @@ int main(int argc, char *argv[]) {
               }
             }
           }
+        
+        // Process newly added paths
+        for (int i = 0; i < added_path_list.size(); i++) {
+          while (getPredGivenGraphLine(added_path_list[i][0]->getGraphLine()).size() >= 1) {
+            int added_path = 1;
+            std::vector<Graph_Instruction *> original_path = added_path_list[i];
+            for (Graph_Line *pred_graph_line : getPredGivenGraphLine(added_path_list[i][0]->getGraphLine())) {
+              std::list<Graph_Instruction *> new_graph_line_instructions = pred_graph_line->getLineInstructions();
+              new_graph_line_instructions.reverse();
+              std::vector<Graph_Instruction *> new_path = original_path;
+              for (auto new_line_instruction : new_graph_line_instructions) {
+                new_path.insert(new_path.begin(), new_line_instruction);
+              }
+              if (added_path > 1) {
+                added_path_list.push_back(new_path);
+              } else {
+                added_path_list[i] = new_path;
+              }
+              added_path++;
+            }
+          }
+        }
+
+        // Process newly added paths from the end to the exit
+        for (int i = 0; i < added_path_list.size(); i++) {
+          while (getSuccGivenGraphLine(added_path_list[i].back()->getGraphLine()).size() >= 1) {
+            int added_path = 1;
+            std::vector<Graph_Instruction *> original_path = added_path_list[i];
+            for (Graph_Line *succ_graph_line : getSuccGivenGraphLine(added_path_list[i].back()->getGraphLine())) {
+              std::list<Graph_Instruction *> new_graph_line_instructions = succ_graph_line->getLineInstructions();
+              std::vector<Graph_Instruction *> new_path = original_path;
+              for (auto new_line_instruction : new_graph_line_instructions) {
+                new_path.insert(new_path.end(), new_line_instruction);
+              }
+              if (added_path > 1) {
+                added_path_list.push_back(new_path);
+              } else {
+                added_path_list[i] = new_path;
+              }
+              added_path++;
+            }
+          }
+        }
+
+
         std::map<Graph_Line *, Graph_Line *> iterMatch = matchedInMVICFG(MVICFG, ICFG, iter, graphVersion);
         addedLines.insert(addedLines.end(), iterAdd.begin(), iterAdd.end());
         deletedLines.insert(deletedLines.end(), iterDel.begin(), iterDel.end());
@@ -146,6 +191,8 @@ int main(int argc, char *argv[]) {
   }
   std::cout << "Number of newly removed paths: " + std::to_string(path_number-1) + "\n";
 
+  path_number = 1;
+  
   std::cout << "Newly added paths: \n";
   for (std::vector<Graph_Instruction *> path : added_path_list) {
     std::cout << "Path " + std::to_string(path_number) + ": ";

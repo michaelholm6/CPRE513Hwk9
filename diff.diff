@@ -1,13 +1,22 @@
---- MVICFG/Hydrogen.cpp	2023-11-05 17:52:16.505824298 -0600
-+++ Homework9/MVICFG/Hydrogen.cpp	2023-11-05 17:39:36.157841485 -0600
+--- Hydrogen_original.cpp	2023-11-14 02:12:05.000000000 +0000
++++ Hydrogen.cpp	2023-11-14 01:59:34.000000000 +0000
 @@ -10,0 +11 @@
 +#include "Graph_Instruction.hpp"
 @@ -11,0 +13,2 @@
 +#include <string>
 +#include <vector>
-@@ -43,0 +47 @@
+@@ -43,0 +47,2 @@
 +  std::vector<std::vector<Graph_Instruction *>> deleted_path_list;
-@@ -57,0 +62,48 @@
++  std::vector<std::vector<Graph_Instruction *>> added_path_list;
+@@ -57,0 +63,101 @@
++        for (auto line : iterAdd){
++          std::vector<Graph_Instruction *> added_path;
++          for (auto lineInst : line->getLineInstructions()) {
++            added_path.push_back(lineInst);
++          }
++          added_path_list.push_back(added_path);
++        }
++
 +        for (auto line : iterDel) {
 +          std::vector<Graph_Instruction *> deleted_path;
 +          for (auto lineInst : line->getLineInstructions()) {
@@ -56,7 +65,52 @@
 +              }
 +            }
 +          }
-@@ -75,0 +128,11 @@
++        
++        // Process newly added paths
++        for (int i = 0; i < added_path_list.size(); i++) {
++          while (getPredGivenGraphLine(added_path_list[i][0]->getGraphLine()).size() >= 1) {
++            int added_path = 1;
++            std::vector<Graph_Instruction *> original_path = added_path_list[i];
++            for (Graph_Line *pred_graph_line : getPredGivenGraphLine(added_path_list[i][0]->getGraphLine())) {
++              std::list<Graph_Instruction *> new_graph_line_instructions = pred_graph_line->getLineInstructions();
++              new_graph_line_instructions.reverse();
++              std::vector<Graph_Instruction *> new_path = original_path;
++              for (auto new_line_instruction : new_graph_line_instructions) {
++                new_path.insert(new_path.begin(), new_line_instruction);
++              }
++              if (added_path > 1) {
++                added_path_list.push_back(new_path);
++              } else {
++                added_path_list[i] = new_path;
++              }
++              added_path++;
++            }
++          }
++        }
++
++        // Process newly added paths from the end to the exit
++        for (int i = 0; i < added_path_list.size(); i++) {
++          while (getSuccGivenGraphLine(added_path_list[i].back()->getGraphLine()).size() >= 1) {
++            int added_path = 1;
++            std::vector<Graph_Instruction *> original_path = added_path_list[i];
++            for (Graph_Line *succ_graph_line : getSuccGivenGraphLine(added_path_list[i].back()->getGraphLine())) {
++              std::list<Graph_Instruction *> new_graph_line_instructions = succ_graph_line->getLineInstructions();
++              std::vector<Graph_Instruction *> new_path = original_path;
++              for (auto new_line_instruction : new_graph_line_instructions) {
++                new_path.insert(new_path.end(), new_line_instruction);
++              }
++              if (added_path > 1) {
++                added_path_list.push_back(new_path);
++              } else {
++                added_path_list[i] = new_path;
++              }
++              added_path++;
++            }
++          }
++        }
++
++
+@@ -75,0 +182,25 @@
 +  int path_number = 1;
 +  std::cout << "Newly removed paths: \n";
 +  for (std::vector <Graph_Instruction *> path : deleted_path_list){
@@ -68,3 +122,17 @@
 +    path_number++;
 +  }
 +  std::cout << "Number of newly removed paths: " + std::to_string(path_number-1) + "\n";
++
++  path_number = 1;
++  
++  std::cout << "Newly added paths: \n";
++  for (std::vector<Graph_Instruction *> path : added_path_list) {
++    std::cout << "Path " + std::to_string(path_number) + ": ";
++    for (Graph_Instruction *Instr : path) {
++      std::cout << std::to_string(Instr->getInstructionID()) + " ";
++    }
++    std::cout << "\n";
++    path_number++;
++  }
++  std::cout << "Number of newly added paths: " + std::to_string(path_number - 1) + "\n";
++
